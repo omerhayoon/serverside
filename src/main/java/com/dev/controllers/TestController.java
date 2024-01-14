@@ -2,6 +2,7 @@ package com.dev.controllers;
 
 import com.dev.BasicResponse;
 import com.dev.User;
+import com.dev.utils.DbUtils;
 import com.dev.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,15 +25,29 @@ public class TestController {
     @Autowired
     public Utils utils;
 
-    @PostConstruct
-    public void init () {
-    }
+    @Autowired
+    private DbUtils dbUtils;
+
+
+
 
 
     @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.POST})
     public Object test () {
         return "Hello From Server";
     }
+
+
+    @RequestMapping (value = "check-username")
+    public boolean checkUsername (String username) {
+        return dbUtils.checkIfUsernameAvailable(username);
+    }
+
+    @RequestMapping (value = "/sign-in")
+    public boolean signIn (String username, String password) {
+        return dbUtils.checkCredentials(username, password);
+    }
+
 
     @RequestMapping(value = "sign-up", method = {RequestMethod.GET, RequestMethod.POST})
     public Object signUp (String username, String password, String password2) {
