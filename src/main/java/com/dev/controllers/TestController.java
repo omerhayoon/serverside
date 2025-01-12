@@ -2,7 +2,6 @@ package com.dev.controllers;
 
 import org.springframework.web.bind.annotation.*;
 import com.dev.BasicResponse; // For returning responses
-import com.dev.User; // The User class
 import com.dev.utils.DbUtils; // Database utility class
 import org.springframework.beans.factory.annotation.Autowired;
 
