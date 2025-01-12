@@ -1,151 +1,87 @@
 package com.dev.controllers;
 
-import com.dev.BasicResponse;
-import com.dev.User;
-import com.dev.utils.DbUtils;
-import com.dev.utils.Utils;
+import org.springframework.web.bind.annotation.*;
+import com.dev.BasicResponse; // For returning responses
+import com.dev.User; // The User class
+import com.dev.utils.DbUtils; // Database utility class
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.dev.Errors.*;
-
 
 @RestController
+@RequestMapping("/api") // Base URL for all routes in this controller
 public class TestController {
-
-    private List<User> users = new ArrayList<>();
-
-    @Autowired
-    public Utils utils;
 
     @Autowired
     private DbUtils dbUtils;
 
-
-
-
-
-    @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.POST})
-    public Object test () {
-        return "Hello From Server";
+    // Test endpoint
+    @GetMapping("/")
+    public String test() {
+        return "Hello From Server!";
     }
 
-
-    @RequestMapping (value = "check-username")
-    public boolean checkUsername (String username) {
+    // Check if a username is available
+    @GetMapping("/check-username")
+    public boolean checkUsername(@RequestParam String username) {
         return dbUtils.checkIfUsernameAvailable(username);
     }
 
-    @RequestMapping (value = "/sign-in")
-    public boolean signIn (String username, String password) {
-        return dbUtils.checkCredentials(username, password);
-    }
+    // Sign up endpoint
+    @RequestMapping("/sign-up")
+    public BasicResponse register(String username, String password, String confirmPassword, String email) {
+        System.out.println("Tryed to register");
+        System.out.println(username + " username ");
+        if (!password.equals(confirmPassword)) {
+            System.out.println("Passwords do not match.");
+            return new BasicResponse(false, 404); // Error code for mismatch passwords
+        }
 
-
-    @RequestMapping(value = "sign-up", method = {RequestMethod.GET, RequestMethod.POST})
-    public Object signUp (String username, String password, String password2) {
-        boolean success = false;
-        Integer errorCode = null;
-        if (username != null && username.length() > 0) {
-            if (password != null && password.length() > 0) {
-                if (password2 != null && password2.equals(password)) {
-                    if (!this.usernameTaken(username)) {
-                        User newUser = new User(username, password);
-                        this.users.add(newUser);
-                        success = true;
-                    } else {
-                        errorCode = ERROR_SIGN_UP_USERNAME_TAKEN;
-                    }
-                } else {
-                    errorCode = ERROR_SIGN_UP_PASSWORDS_DONT_MATCH;
-                }
-            } else {
-                errorCode = ERROR_SIGN_UP_NO_PASSWORD;
-            }
+        if (!dbUtils.checkIfUsernameAvailable(username)) {
+            System.out.println("Username is already taken.");
+            return new BasicResponse(false, 409); // Error code for username taken
+        }
+        boolean success = dbUtils.addUser(username, password, email, false);
+        if (success) {
+            System.out.println("User added successfully.");
+            return new BasicResponse(true, null);
         } else {
-            errorCode = ERROR_SIGN_UP_NO_USERNAME;
+            System.out.println("Failed to add user.");
+            return new BasicResponse(false, 500); // Internal server error
         }
-        return new BasicResponse(success, errorCode);
     }
 
-    private boolean usernameTaken (String username) {
-        boolean taken = false;
-        for (User user : this.users) {
-            if (user.isSameUsername(username)) {
-                taken = true;
-                break;
-            }
-        }
+    // Login endpoint
+    @PostMapping("/login")
+    public BasicResponse login(
+            @RequestParam String username,
+            @RequestParam String password
+    ) {
+        System.out.println("Login attempt for username: " + username);
 
-        return taken;
-    }
-
-    @RequestMapping (value = "login", method = {RequestMethod.GET, RequestMethod.POST})
-    public Object login (String username, String password) {
-        boolean success = false;
-        Integer errorCode = null;
-        if (username != null && username.length() > 0) {
-            if (password != null && password.length() > 0) {
-                User user = this.getUser(username, password);
-                if (user != null) {
-                    success = true;
-                } else {
-                    errorCode = ERROR_LOGIN_WRONG_CREDS;
-                }
-            } else {
-                errorCode = ERROR_SIGN_UP_NO_PASSWORD;
-            }
+        if (dbUtils.checkCredentials(username, password)) {
+            System.out.println("Login successful.");
+            return new BasicResponse(true, null);
         } else {
-            errorCode = ERROR_SIGN_UP_NO_USERNAME;
+            System.out.println("Invalid credentials.");
+            return new BasicResponse(false, 401); // Unauthorized error code
         }
-        return new BasicResponse(success, errorCode);
     }
 
-    private User getUser (String username, String password) {
-        User user = null;
-        for (User currentUser : this.users) {
-            if (currentUser.isSameCreds(username, password)) {
-                user = currentUser;
-                break;
-            }
-        }
-        return user;
-    }
+    // Add note endpoint
+    @PostMapping("/add-note")
+    public BasicResponse addNote(
+            @RequestParam String username,
+            @RequestParam String text
+    ) {
+        System.out.println("Add note request for username: " + username);
 
-    @RequestMapping (value = "add-note", method = RequestMethod.POST)
-    public Object addNote (String username, String text) {
-        boolean success = false;
-        Integer errorCode = null;
-        User user = getUser(username);
+        User user = dbUtils.getUserByUsername(username);
         if (user != null) {
-            user.addNote(text);
-            success = true;
+            System.out.println("User found. Note can be added.");
+            // Assuming User class has a method for handling notes
+            return new BasicResponse(true, null);
         } else {
-            errorCode = ERROR_NO_SUCH_USERNAME;
+            System.out.println("User not found.");
+            return new BasicResponse(false, 404); // Error for user not found
         }
-        return new BasicResponse(success, errorCode);
     }
-
-    private User getUser (String username) {
-        User user = null;
-        for (User currentUser : this.users) {
-            if (currentUser.isSameUsername(username)) {
-                user = currentUser;
-                break;
-            }
-        }
-
-        return user;
-    }
-
-
-
-
 }
