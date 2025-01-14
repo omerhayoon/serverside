@@ -1,11 +1,29 @@
-package com.dev;
+package com.dev.models;
 
+import javax.persistence.*;
+
+@Entity // Marks this class as a JPA entity
+@Table(name = "users") // Specifies the table name in the database
 public class User {
-    private int id; // User ID
-    private String username; // Username
-    private String password; // Password
-    private String email; // Email address
-    private boolean isAdmin; // Admin flag
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment ID
+    private int id;
+
+    @Column(nullable = false, unique = true) // Username must be unique
+    private String username;
+
+    @Column(nullable = false) // Password cannot be null
+    private String password;
+
+    @Column(nullable = false, unique = true) // Email must be unique
+    private String email;
+
+    @Column(name = "is_admin", nullable = false) // Maps to 'is_admin' column
+    private boolean isAdmin;
+
+    // Default constructor (required by JPA)
+    public User() {}
 
     // Constructor
     public User(int id, String username, String password, String email, boolean isAdmin) {
@@ -55,15 +73,6 @@ public class User {
 
     public void setAdmin(boolean admin) {
         isAdmin = admin;
-    }
-
-    // Utility methods
-    public boolean isSameUsername(String username) {
-        return this.username.equals(username);
-    }
-
-    public boolean isSameCreds(String username, String password) {
-        return this.username.equals(username) && this.password.equals(password);
     }
 
     @Override

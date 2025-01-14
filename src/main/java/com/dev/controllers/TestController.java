@@ -39,7 +39,8 @@ public class TestController {
                 System.out.println("Username is already taken.");
                 return new BasicResponse(false, 409); // Error code for username taken
             }
-            boolean success = dbUtils.addUser(username, password, email, false);
+            String hashedPassword = DbUtils.hashPasswordMD5(password);
+            boolean success = dbUtils.addUser(username, hashedPassword, email, false);
             if (success) {
                 System.out.println("User added successfully.");
                 return new BasicResponse(true, null);
@@ -59,11 +60,13 @@ public class TestController {
     ) {
         try {
             System.out.println("Login attempt for username: " + username);
-
-            if (dbUtils.checkCredentials(username, password)) {
+            String hashedPassword = DbUtils.hashPasswordMD5(password);
+            if (dbUtils.checkCredentials(username, hashedPassword)) {
                 System.out.println("Login successful.");
+                System.out.println(username + " "+password+" "+" "+hashedPassword);
                 return new BasicResponse(true, null);
             } else {
+                System.out.println("login failed"+ username + " "+password+" "+" "+hashedPassword);
                 System.out.println("Invalid credentials.");
                 return new BasicResponse(false, 401); // Unauthorized error code
             }
