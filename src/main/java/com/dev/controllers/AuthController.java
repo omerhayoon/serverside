@@ -24,6 +24,7 @@ public class AuthController {
     @Autowired
     private SessionManager sessionManager;
 
+    //isUsernameOrEmailTaken
     @PostMapping("/sign-up")
     public BasicResponse signUp(
             @RequestParam String username,
@@ -33,9 +34,28 @@ public class AuthController {
         System.out.println("Hello from sign up");
         try {
             userService.registerUser(username, password, email);
-            return new BasicResponse(true,200);
+            return new BasicResponse(true, 200);
         } catch (RuntimeException e) {
-            return new BasicResponse(false,400);
+            return new BasicResponse(false, 400);
+        }
+    }
+
+    @PostMapping("/check-availability")
+    public BasicResponse checkAvailability(
+            @RequestParam String username,
+            @RequestParam String email
+    ) {
+        System.out.println("Hello from checkAvailability");
+        try {
+            boolean response = userService.isUsernameOrEmailTaken(username, email);
+            if (!response) {
+                System.out.println("user free");
+                return new BasicResponse(true, 200);
+            }
+            System.out.println("user taken");
+            return new BasicResponse(false, 400);
+        } catch (RuntimeException e) {
+            return new BasicResponse(false, 400);
         }
     }
 
@@ -50,9 +70,10 @@ public class AuthController {
             String sessionId = sessionManager.createSession(user);
             System.out.println("Created session: " + sessionId + " for user: " + user.getUsername());
 
-            // הגדרת Cookie
+            // הגדרתי secure - false http only - false
+            // כי אם לא לא נוכל לגשת מלוקל הוסט
             ResponseCookie cookie = ResponseCookie.from("session_id", sessionId)
-                    .httpOnly(true)
+                    .httpOnly(false).secure(false)
                     .path("/")
                     .maxAge(7 * 24 * 60 * 60) // 7 ימים
                     .build();
@@ -64,56 +85,60 @@ public class AuthController {
         }
         return new LoginResponse(false, 400, null, null);
     }
+
     @PostMapping("/logout")
-    public BasicResponse logout(@CookieValue(name = "session_id", required = false) String sessionId) {
-        System.out.println("Entered logout");
+    public ResponseEntity<BasicResponse> logout(
+            @CookieValue(name = "session_id", required = false) String sessionId,
+            HttpServletResponse response) {
+
+        System.out.println("Entered logout with sessionId: " + sessionId);
+
         if (sessionId != null) {
-            sessionManager.invalidateSession(sessionId);
+            try {
+                // מחיקת הסשן מהמערכת
+                sessionManager.invalidateSession(sessionId);
 
-            // יצירת קוקי חדש עם זמן חיים 0 כדי למחוק אותו
-            ResponseCookie cookie = ResponseCookie.from("session_id", "")
-                    .httpOnly(true)
-                    .path("/")
-                    .maxAge(0)  // גורם למחיקת הקוקי
-                    .build();
+                // יצירת cookie ריק שיגרום למחיקת ה-cookie הקיים
+                ResponseCookie cookie = ResponseCookie.from("session_id", "")
+                        .httpOnly(false)
+                        .path("/")
+                        .maxAge(0)
+                        .domain("localhost")
+                        .build();
 
-            return new BasicResponse(true,200);
+                // הוספת ה-cookie לתגובה
+                response.setHeader("Set-Cookie", cookie.toString());
+
+                return ResponseEntity.ok()
+                        .header("Set-Cookie", cookie.toString())
+                        .body(new BasicResponse(true, 200));
+            } catch (Exception e) {
+                System.out.println("Error during logout: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new BasicResponse(false, 500));
+            }
         }
 
-        return new BasicResponse(false,225);
-
+        return ResponseEntity.ok(new BasicResponse(false, 225));
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(@CookieValue(name = "session_id", required = false) String sessionId) {
-//        if (sessionId != null) {
-//            sessionManager.invalidateSession(sessionId);
-//
-//            // יצירת קוקי חדש עם זמן חיים 0 כדי למחוק אותו
-//            ResponseCookie cookie = ResponseCookie.from("session_id", "")
-//                    .httpOnly(true)
-//                    .path("/")
-//                    .maxAge(0)  // גורם למחיקת הקוקי
-//                    .build();
-//
-//            return ResponseEntity.ok()
-//                    .header("Set-Cookie", cookie.toString())
-//                    .body(new BasicResponse(true, 200));
-//        }
-//
-//        return ResponseEntity.badRequest()
-//                .body(new BasicResponse(false, 400));
-//    }
     @PostMapping("/check-session")
-    public ResponseEntity<?> checkSession(@CookieValue("session_id") String sessionId) {
-        System.out.println("Received session ID: " + sessionId); // בדיקה בלוג
+    public ResponseEntity<?> checkSession(@CookieValue(value = "session_id", required = false) String sessionId) {
+        if (sessionId == null || sessionId.isEmpty()) {
+            System.out.println("No session ID found in cookies.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "No session ID"));
+        }
+
+        System.out.println("Received session ID: " + sessionId);
         User user = sessionManager.getUserBySessionId(sessionId);
+        System.out.println(user);
 
         if (user != null) {
-            return ResponseEntity.ok(Map.of("success", true, "user", user));
+            return ResponseEntity.ok(Map.of("success", true, "message", "Valid session"));
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Invalid session"));
     }
+
 
 }

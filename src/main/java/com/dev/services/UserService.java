@@ -17,15 +17,20 @@ public class UserService {
     public boolean isUsernameAvailable(String username) {
         return userRepository.findByUsername(username).isEmpty();
     }
+    public boolean isUsernameOrEmailTaken(String username, String email) {
+        return userRepository.existsByUsername(username) || userRepository.existsByEmail(email);
+    }
 
     public User registerUser(String username, String password, String email) {
-        if (!isUsernameAvailable(username)) {
-            throw new RuntimeException("Username is already taken");
+        System.out.println("entered register");
+        if (isUsernameOrEmailTaken(username,email)) {
+            System.out.println("username/email is already taken");
+            throw new RuntimeException("Username/email is already taken");
         }
 
         User user = new User();
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password)); // הצפנה מאובטחת
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setAdmin(false);
 
