@@ -57,7 +57,7 @@ public class SessionManager {
     }
 
     @Transactional
-    public void invalidateSession(String sessionId) {
+    public void removeSession(String sessionId) {
         sessionRepository.deleteBySessionId(sessionId);
     }
 }

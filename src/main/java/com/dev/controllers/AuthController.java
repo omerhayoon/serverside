@@ -2,8 +2,10 @@ package com.dev.controllers;
 
 import com.dev.BasicResponse;
 import com.dev.LoginResponse;
+import com.dev.RegisterResponse;
 import com.dev.models.User;
 import com.dev.services.UserService;
+import com.dev.utils.InputValidator;
 import com.dev.utils.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,23 +26,45 @@ public class AuthController {
 
     @Autowired
     private SessionManager sessionManager;
+    @Autowired
+    private InputValidator inputValidator;
+
 
     //isUsernameOrEmailTaken
     @PostMapping("/sign-up")
-    public BasicResponse signUp(
+    public RegisterResponse signUp(
             @RequestParam String username,
             @RequestParam String password,
+            @RequestParam String confirmPassword,
             @RequestParam String email
     ) {
         System.out.println("Hello from sign up");
         try {
-            userService.registerUser(username, password, email);
-            return new BasicResponse(true, 200);
+            List<String> usernameErrors = inputValidator.validateUsername(username);
+            if (!usernameErrors.isEmpty()) {
+                return new RegisterResponse(false, 400, "Invalid username");
+            }
+            List<String> emailErrors = inputValidator.validateEmail(email);
+            if (!emailErrors.isEmpty()) {
+                return new RegisterResponse(false, 400, "Invalid email");
+            }
+            List<String> passwordErrors = inputValidator.validatePassword(password, confirmPassword);
+            if (!passwordErrors.isEmpty()) {
+                return new RegisterResponse(false, 400,"Invalid Password");
+            }
+            if (userService.isUsernameOrEmailTaken(username, email)){
+                return new RegisterResponse(false,400,"Email/Username is taken");
+            }
+
+            userService.registerUser(username, password,confirmPassword, email);
+            return new RegisterResponse(true, 200,"success");
         } catch (RuntimeException e) {
-            return new BasicResponse(false, 400);
+            return new RegisterResponse(false, 400,"false");
         }
     }
 
+
+    //handle it on the client side to warn the user that the user/email already exits
     @PostMapping("/check-availability")
     public BasicResponse checkAvailability(
             @RequestParam String username,
@@ -95,8 +120,8 @@ public class AuthController {
 
         if (sessionId != null) {
             try {
-                // מחיקת הסשן מהמערכת
-                sessionManager.invalidateSession(sessionId);
+
+                sessionManager.removeSession(sessionId);
 
                 // יצירת cookie ריק שיגרום למחיקת ה-cookie הקיים
                 ResponseCookie cookie = ResponseCookie.from("session_id", "")
@@ -106,7 +131,7 @@ public class AuthController {
                         .domain("localhost")
                         .build();
 
-                // הוספת ה-cookie לתגובה
+
                 response.setHeader("Set-Cookie", cookie.toString());
 
                 return ResponseEntity.ok()

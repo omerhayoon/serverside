@@ -2,15 +2,20 @@ package com.dev.services;
 
 import com.dev.models.User;
 import com.dev.repository.UserRepository;
+import com.dev.utils.InputValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private InputValidator inputValidator;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -21,11 +26,15 @@ public class UserService {
         return userRepository.existsByUsername(username) || userRepository.existsByEmail(email);
     }
 
-    public User registerUser(String username, String password, String email) {
+    public User registerUser(String username, String password,String confirmPassword, String email) {
         System.out.println("entered register");
         if (isUsernameOrEmailTaken(username,email)) {
             System.out.println("username/email is already taken");
             throw new RuntimeException("Username/email is already taken");
+        }
+        List<String> passwordErrors = inputValidator.validatePassword(password,confirmPassword);
+        if (!passwordErrors.isEmpty()) {
+            throw new RuntimeException("Invalid password");
         }
 
         User user = new User();
