@@ -9,6 +9,7 @@ public class BasicResponse {
         this.errorCode = errorCode;
     }
 
+    // גטרים וסטרים
     public boolean isSuccess() {
         return success;
     }
@@ -25,3 +26,4 @@ public class BasicResponse {
         this.errorCode = errorCode;
     }
 }
+

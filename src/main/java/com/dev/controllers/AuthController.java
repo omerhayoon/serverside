@@ -5,6 +5,7 @@ import com.dev.LoginResponse;
 import com.dev.RegisterResponse;
 import com.dev.models.User;
 import com.dev.services.UserService;
+import com.dev.utils.Constants;
 import com.dev.utils.InputValidator;
 import com.dev.utils.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class AuthController {
     //isUsernameOrEmailTaken
     @PostMapping("/sign-up")
     public RegisterResponse signUp(
+            @RequestParam String name,
             @RequestParam String username,
             @RequestParam String password,
             @RequestParam String confirmPassword,
@@ -40,28 +42,36 @@ public class AuthController {
     ) {
         System.out.println("Hello from sign up");
         try {
-            List<String> usernameErrors = inputValidator.validateUsername(username);
-            if (!usernameErrors.isEmpty()) {
-                return new RegisterResponse(false, 400, "Invalid username");
-            }
-            List<String> emailErrors = inputValidator.validateEmail(email);
-            if (!emailErrors.isEmpty()) {
-                return new RegisterResponse(false, 400, "Invalid email");
-            }
-            List<String> passwordErrors = inputValidator.validatePassword(password, confirmPassword);
-            if (!passwordErrors.isEmpty()) {
-                return new RegisterResponse(false, 400,"Invalid Password");
-            }
-            if (userService.isUsernameOrEmailTaken(username, email)){
-                return new RegisterResponse(false,400,"Email/Username is taken");
+            if (name == null || name.trim().isEmpty()) {
+                return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Invalid name");
             }
 
-            userService.registerUser(username, password,confirmPassword, email);
-            return new RegisterResponse(true, 200,"success");
+            List<String> usernameErrors = inputValidator.validateUsername(username);
+            if (!usernameErrors.isEmpty()) {
+                return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Invalid username");
+            }
+
+            List<String> emailErrors = inputValidator.validateEmail(email);
+            if (!emailErrors.isEmpty()) {
+                return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Invalid email");
+            }
+
+            List<String> passwordErrors = inputValidator.validatePassword(password, confirmPassword);
+            if (!passwordErrors.isEmpty()) {
+                return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Invalid Password");
+            }
+
+            if (userService.isUsernameOrEmailTaken(username, email)) {
+                return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Email/Username is taken");
+            }
+
+            userService.registerUser(name, username, password, confirmPassword, email);
+            return new RegisterResponse(true, Constants.ERROR_CODE_OK, "Success");
         } catch (RuntimeException e) {
-            return new RegisterResponse(false, 400,"false");
+            return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Error occurred during sign up");
         }
     }
+
 
 
     //handle it on the client side to warn the user that the user/email already exits
@@ -75,12 +85,12 @@ public class AuthController {
             boolean response = userService.isUsernameOrEmailTaken(username, email);
             if (!response) {
                 System.out.println("user free");
-                return new BasicResponse(true, 200);
+                return new BasicResponse(true, Constants.ERROR_CODE_OK);
             }
             System.out.println("user taken");
-            return new BasicResponse(false, 400);
+            return new BasicResponse(false, Constants.ERROR_CODE_BAD);
         } catch (RuntimeException e) {
-            return new BasicResponse(false, 400);
+            return new BasicResponse(false, Constants.ERROR_CODE_BAD);
         }
     }
 
@@ -105,11 +115,12 @@ public class AuthController {
             response.addHeader("Set-Cookie", cookie.toString());
             System.out.println("Set cookie header: " + cookie.toString());
 
-
-            return new LoginResponse(true, 200, sessionId, user);
+            // החזרת המידע החדש כולל השם
+            return new LoginResponse(true, Constants.ERROR_CODE_OK, sessionId, user);
         }
-        return new LoginResponse(false, 400, null, null);
+        return new LoginResponse(false, Constants.ERROR_CODE_BAD, null, null);
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<BasicResponse> logout(
@@ -136,7 +147,7 @@ public class AuthController {
 
                 return ResponseEntity.ok()
                         .header("Set-Cookie", cookie.toString())
-                        .body(new BasicResponse(true, 200));
+                        .body(new BasicResponse(true, Constants.ERROR_CODE_OK));
             } catch (Exception e) {
                 System.out.println("Error during logout: " + e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

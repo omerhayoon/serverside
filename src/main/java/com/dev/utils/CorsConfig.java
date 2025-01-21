@@ -15,6 +15,6 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .exposedHeaders("Set-Cookie")  // הוספת חשיפה של header ספציפי
                 .allowCredentials(true)
-                .maxAge(3600);
+                .maxAge(Constants.MAX_AGE);
     }
 }

@@ -37,7 +37,7 @@ public class InputValidator {
             return errors;
         }
 
-        if (username.length() < 6) {
+        if (username.length() < Constants.USERNAME_LENGTH) {
             errors.add("שם המשתמש חייב להכיל לפחות 6 תווים");
         }
 
@@ -50,7 +50,7 @@ public class InputValidator {
     }
 
     public boolean isValidPassword(String password) {
-        if (password == null || password.length() < 6 || password.length() > 12) {
+        if (password == null || password.length() < Constants.USERNAME_LENGTH || password.length() > Constants.PASSWORD_LENGTH) {
             return false;
         }
 
@@ -69,7 +69,7 @@ public class InputValidator {
             return errors;
         }
 
-        if (password.length() < 6 || password.length() > 12) {
+        if (password.length() < Constants.USERNAME_LENGTH || password.length() > Constants.PASSWORD_LENGTH) {
             errors.add("אורך הסיסמה חייב להיות בין 6 ל-12 תווים");
         }
 

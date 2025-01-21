@@ -11,7 +11,7 @@ public class DbUtils {
 
     @PostConstruct
     public void init() {
-        createDbConnection("root", "1234"); // עדכן לפי שם משתמש וסיסמה
+        createDbConnection(Constants.USER_SQL, Constants.PASSWORD_SQL); // עדכן לפי שם משתמש וסיסמה
     }
 
     private void createDbConnection(String username, String password) {
