@@ -159,7 +159,7 @@ public class AuthController {
         System.out.println(user);
 
         if (user != null) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "Valid session"));
+            return ResponseEntity.ok(Map.of("success", true, "username", user.getUsername(), "message", "Valid session"));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Invalid session"));
