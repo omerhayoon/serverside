@@ -1,17 +1,22 @@
 package com.dev;
 
+import com.dev.dto.UserDTO;
 import com.dev.models.User;
 
 public class LoginResponse extends BasicResponse {
     private String sessionId;
-    private User user;
-    private String userName;  // הוספת שדה userName
+    private String username;
+    private String name;
+    private String email;
 
-    public LoginResponse(boolean success, Integer errorCode, String sessionId, User user) {
-        super(success, errorCode); // קריאה לבנאי של BasicResponse
+    public LoginResponse(boolean success, Integer errorCode, String sessionId, UserDTO user) {
+        super(success, errorCode);
         this.sessionId = sessionId;
-        this.user = user;
-        this.userName = (user != null) ? user.getName() : null;  // הוספת השם מתוך אובייקט ה-User
+        if (user != null) {
+            this.username = user.getUsername();
+            this.name = user.getName();
+            this.email = user.getEmail();
+        }
     }
 
     public String getSessionId() {
@@ -22,20 +27,15 @@ public class LoginResponse extends BasicResponse {
         this.sessionId = sessionId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-        this.userName = (user != null) ? user.getName() : null;  // עדכון השם אם ה-user משתנה
+    public String getName() {
+        return name;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public String getEmail() {
+        return email;
     }
 }

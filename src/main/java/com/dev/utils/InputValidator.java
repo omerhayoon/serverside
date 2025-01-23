@@ -50,7 +50,7 @@ public class InputValidator {
     }
 
     public boolean isValidPassword(String password) {
-        if (password == null || password.length() < Constants.USERNAME_LENGTH || password.length() > Constants.PASSWORD_LENGTH) {
+        if (password == null || password.length() < Constants.MIN_PASSWORD_LENGTH || password.length() > Constants.MAX_PASSWORD_LENGTH) {
             return false;
         }
 
@@ -69,7 +69,7 @@ public class InputValidator {
             return errors;
         }
 
-        if (password.length() < Constants.USERNAME_LENGTH || password.length() > Constants.PASSWORD_LENGTH) {
+        if (password.length() < Constants.MIN_PASSWORD_LENGTH || password.length() > Constants.MAX_PASSWORD_LENGTH) {
             errors.add("אורך הסיסמה חייב להיות בין 6 ל-12 תווים");
         }
 
@@ -84,6 +84,7 @@ public class InputValidator {
         if (!containsSpecialChar(password)) {
             errors.add("הסיסמה חייבת להכיל לפחות תו מיוחד אחד");
         }
+        System.out.println(errors);
 
         return errors;
     }

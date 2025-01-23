@@ -3,6 +3,7 @@ package com.dev.controllers;
 import com.dev.BasicResponse;
 import com.dev.LoginResponse;
 import com.dev.RegisterResponse;
+import com.dev.dto.UserDTO;
 import com.dev.models.User;
 import com.dev.services.UserService;
 import com.dev.utils.Constants;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +43,8 @@ public class AuthController {
             @RequestParam String email
     ) {
         System.out.println("Hello from sign up");
+        System.out.println(password + "password");
+        System.out.println(confirmPassword + "confirm password");
         try {
             if (name == null || name.trim().isEmpty()) {
                 return new RegisterResponse(false, Constants.ERROR_CODE_BAD, "Invalid name");
@@ -100,22 +104,25 @@ public class AuthController {
             @RequestParam String password,
             HttpServletResponse response
     ) {
-        User user = userService.login(username, password);
-        if (user != null) {
-            String sessionId = sessionManager.createSession(user);
-            System.out.println("Created session: " + sessionId + " for user: " + user.getUsername());
+        User newUser = userService.login(username, password);
+        if (newUser != null) {
+            String sessionId = sessionManager.createSession(newUser);
+            System.out.println("Created session: " + sessionId + " for user: " + newUser.getUsername());
 
-            // הגדרתי secure - false http only - false
-            // כי אם לא לא נוכל לגשת מלוקל הוסט
+            UserDTO user = new UserDTO(newUser);
+            user.setUsername(user.getUsername());
+            user.setName(user.getName());
+            user.setEmail(user.getEmail());
+
             ResponseCookie cookie = ResponseCookie.from("session_id", sessionId)
-                    .httpOnly(false).secure(false)
+                    .httpOnly(false)
+                    .secure(false)
                     .path("/")
-                    .maxAge(7 * 24 * 60 * 60) // 7 ימים
+                    .maxAge(7 * 24 * 60 * 60)
                     .build();
             response.addHeader("Set-Cookie", cookie.toString());
             System.out.println("Set cookie header: " + cookie.toString());
 
-            // החזרת המידע החדש כולל השם
             return new LoginResponse(true, Constants.ERROR_CODE_OK, sessionId, user);
         }
         return new LoginResponse(false, Constants.ERROR_CODE_BAD, null, null);
@@ -161,20 +168,24 @@ public class AuthController {
     @PostMapping("/check-session")
     public ResponseEntity<?> checkSession(@CookieValue(value = "session_id", required = false) String sessionId) {
         if (sessionId == null || sessionId.isEmpty()) {
-            System.out.println("No session ID found in cookies.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "No session ID"));
         }
 
-        System.out.println("Received session ID: " + sessionId);
         User user = sessionManager.getUserBySessionId(sessionId);
-        System.out.println(user);
 
         if (user != null) {
-            return ResponseEntity.ok(Map.of("success", true, "username", user.getUsername(), "message", "Valid session"));
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("username", user.getUsername());
+            response.put("email", user.getEmail());
+            response.put("name", user.getName());
+            // Add any other non-sensitive user fields
+            response.put("message", "Valid session");
+
+            return ResponseEntity.ok(response);
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Invalid session"));
     }
-
 
 }
