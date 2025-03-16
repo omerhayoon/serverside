@@ -32,8 +32,6 @@ public class AuthController {
     @Autowired
     private InputValidator inputValidator;
 
-
-    //isUsernameOrEmailTaken
     @PostMapping("/sign-up")
     public RegisterResponse signUp(
             @RequestParam String name,
@@ -76,9 +74,6 @@ public class AuthController {
         }
     }
 
-
-
-    //handle it on the client side to warn the user that the user/email already exits
     @PostMapping("/check-availability")
     public BasicResponse checkAvailability(
             @RequestParam String username,
@@ -128,7 +123,6 @@ public class AuthController {
         return new LoginResponse(false, Constants.ERROR_CODE_BAD, null, null);
     }
 
-
     @PostMapping("/logout")
     public ResponseEntity<BasicResponse> logout(
             @CookieValue(name = "session_id", required = false) String sessionId,
@@ -138,17 +132,14 @@ public class AuthController {
 
         if (sessionId != null) {
             try {
-
                 sessionManager.removeSession(sessionId);
 
-                // יצירת cookie ריק שיגרום למחיקת ה-cookie הקיים
+                // יצירת cookie ריק שיגרום למחיקת הקוקי הקיים – ללא הגדרת domain כדי לשמור על עקביות
                 ResponseCookie cookie = ResponseCookie.from("session_id", "")
                         .httpOnly(false)
                         .path("/")
                         .maxAge(0)
-                        .domain("localhost")
                         .build();
-
 
                 response.setHeader("Set-Cookie", cookie.toString());
 
@@ -172,20 +163,17 @@ public class AuthController {
         }
 
         User user = sessionManager.getUserBySessionId(sessionId);
-
         if (user != null) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
             response.put("name", user.getName());
-            // Add any other non-sensitive user fields
+            response.put("profileIcon", user.getProfileIcon());
+            response.put("isAdmin", user.isAdmin());
             response.put("message", "Valid session");
-
             return ResponseEntity.ok(response);
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Invalid session"));
     }
-
 }

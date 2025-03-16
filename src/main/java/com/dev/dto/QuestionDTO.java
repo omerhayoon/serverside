@@ -11,4 +11,5 @@ public class QuestionDTO {
     private Map<String, String> answer;  // Can contain x, y for system equations
     private String solution;
     private String type;
+    private Integer level;  // Add level field to track question difficulty
 }

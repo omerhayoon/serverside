@@ -1,7 +1,5 @@
 package com.dev.models;
 
-
-
 import javax.persistence.*;
 
 @Entity
@@ -12,10 +10,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
-
     private String username;
     private String password;
     private String email;
+    private boolean isAdmin;
+
+    // New field for profile icon
+    @Column(name = "profile_icon")
+    private String profileIcon;
 
     public String getName() {
         return name;
@@ -65,5 +67,11 @@ public class User {
         isAdmin = admin;
     }
 
-    private boolean isAdmin;
+    public String getProfileIcon() {
+        return profileIcon;
+    }
+
+    public void setProfileIcon(String profileIcon) {
+        this.profileIcon = profileIcon;
+    }
 }

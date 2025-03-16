@@ -8,6 +8,7 @@ public class LoginResponse extends BasicResponse {
     private String username;
     private String name;
     private String email;
+    private String profileIcon;
 
     public LoginResponse(boolean success, Integer errorCode, String sessionId, UserDTO user) {
         super(success, errorCode);
@@ -16,6 +17,7 @@ public class LoginResponse extends BasicResponse {
             this.username = user.getUsername();
             this.name = user.getName();
             this.email = user.getEmail();
+            this.profileIcon = user.getProfileIcon();
         }
     }
 
@@ -37,5 +39,9 @@ public class LoginResponse extends BasicResponse {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getProfileIcon() {
+        return profileIcon;
     }
 }
