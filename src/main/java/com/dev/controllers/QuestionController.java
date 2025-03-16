@@ -23,16 +23,20 @@ public class QuestionController {
         this.statisticsService = statisticsService;
     }
 
-    @GetMapping("/generate/{type}")
-    public ResponseEntity<QuestionDTO> generateQuestion(@PathVariable String type) {
-        System.out.println("Entered Generate");
-        return ResponseEntity.ok(questionGeneratorService.generateQuestion(type));
+    // Updated endpoint: accepts both type and level
+    @GetMapping("/generate/{type}/{level}")
+    public ResponseEntity<QuestionDTO> generateQuestion(@PathVariable String type,
+                                                        @PathVariable int level) {
+        System.out.println("Entered generateQuestion for type: " + type + ", level: " + level);
+        return ResponseEntity.ok(questionGeneratorService.generateQuestion(type, level));
     }
 
+    // Include level in the answer submission DTO
     @Data
     public static class AnswerSubmissionDTO {
         private String username;
         private String subjectType;
+        private int level; // New field for level
         private Map<String, String> userAnswer;
         private boolean correct;
         private String question;
@@ -52,14 +56,13 @@ public class QuestionController {
                 submission.getCorrectAnswer().toString(),
                 submission.getSolution()
         );
-        System.out.println("Question Controller checkAnswer is called");
-        // Generate a new question for the next attempt
-        QuestionDTO nextQuestion = questionGeneratorService.generateQuestion(submission.getSubjectType());
-
+        System.out.println("QuestionController checkAnswer is called");
+        // Generate a new question using both subjectType and level from the submission
+        QuestionDTO nextQuestion = questionGeneratorService.generateQuestion(
+                submission.getSubjectType(), submission.getLevel());
         Map<String, Object> response = new HashMap<>();
         response.put("correct", submission.isCorrect());
         response.put("nextQuestion", nextQuestion);
-
         return ResponseEntity.ok(response);
     }
 }
