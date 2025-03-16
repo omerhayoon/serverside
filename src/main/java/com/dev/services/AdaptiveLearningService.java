@@ -33,80 +33,75 @@ public class AdaptiveLearningService {
     private Map<String, Integer> consecutiveWrongMap = new HashMap<>();
 
     /**
-     * Get recommended level for a user in a specific subject type.
-     * The subjectType is normalized to its base type (e.g., "probability-3" -> "probability").
+     * Get the recommended level for a user in a given subject.
+     * The subjectType is normalized to its base type.
      */
     public int getRecommendedLevel(String username, String subjectType) {
         String baseSubjectType = getBaseSubjectType(subjectType);
 
-        // First, check if user has a saved level for the base subject type
+        // First, check if the user has a saved level for the base subject type.
         Optional<UserLevel> userLevelOpt = userLevelRepository.findByUsernameAndSubjectType(username, baseSubjectType);
         if (userLevelOpt.isPresent()) {
             return userLevelOpt.get().getLevel();
         }
 
-        // Get user's statistics for this base subject
+        // Retrieve user's statistics for this base subject.
         Optional<SubjectStatistics> statsOpt = subjectStatisticsRepository.findByUsernameAndSubjectType(username, baseSubjectType);
         if (!statsOpt.isPresent()) {
-            // No history for this subject, start at level 1
+            // No history for this subject – start at level 1.
             saveUserLevel(username, baseSubjectType, 1);
             return 1;
         }
 
         SubjectStatistics stats = statsOpt.get();
 
-        // If user has very few attempts, start conservatively
+        // If the user has very few attempts, start conservatively.
         if (stats.getTotalQuestions() < 5) {
             saveUserLevel(username, baseSubjectType, 1);
             return 1;
         }
 
-        // Calculate success rate
+        // Calculate success rate.
         double successRate = stats.getSuccessRate();
 
-        // Determine level based on success rate
+        // Determine level based on success rate.
         int recommendedLevel;
         if (successRate < 40) {
-            recommendedLevel = 1; // Struggling, keep at easiest level
+            recommendedLevel = 1;
         } else if (successRate < 60) {
-            recommendedLevel = 2; // Below average
+            recommendedLevel = 2;
         } else if (successRate < 75) {
-            recommendedLevel = 3; // Average
+            recommendedLevel = 3;
         } else if (successRate < 85) {
-            recommendedLevel = 4; // Above average
+            recommendedLevel = 4;
         } else if (successRate < 95) {
-            recommendedLevel = 5; // Strong
+            recommendedLevel = 5;
         } else {
-            recommendedLevel = 6; // Excellent
+            recommendedLevel = 6;
         }
 
-        // Save the recommended level using the base subject type
+        // Save the recommended level using the base subject type.
         saveUserLevel(username, baseSubjectType, recommendedLevel);
         return recommendedLevel;
     }
 
     /**
-     * Process an answer and determine if the user should level up, down, or stay the same.
-     * Uses the normalized base subject type.
+     * Process an answer and adjust the user's level up or down.
      */
     public int processAnswer(String username, String subjectType, int currentLevel, boolean isCorrect) {
         String baseSubjectType = getBaseSubjectType(subjectType);
         String userSubjectKey = username + ":" + baseSubjectType;
 
         if (isCorrect) {
-            // Reset consecutive wrong counter
+            // Reset wrong counter and increment correct counter.
             consecutiveWrongMap.put(userSubjectKey, 0);
-
-            // Increment consecutive correct counter
             int consecutiveCorrect = consecutiveCorrectMap.getOrDefault(userSubjectKey, 0) + 1;
             consecutiveCorrectMap.put(userSubjectKey, consecutiveCorrect);
 
-            // Check if user should level up
+            // Level up if enough consecutive correct answers and overall success rate is high.
             if (consecutiveCorrect >= CONSECUTIVE_CORRECT_TO_LEVEL_UP && currentLevel < MAX_LEVEL) {
-                // Check if user has good success rate overall for this base subject type
                 Optional<SubjectStatistics> statsOpt = subjectStatisticsRepository.findByUsernameAndSubjectType(username, baseSubjectType);
                 if (statsOpt.isPresent() && statsOpt.get().getSuccessRate() >= MIN_SUCCESS_RATE_FOR_LEVEL_UP) {
-                    // Level up and reset counter
                     consecutiveCorrectMap.put(userSubjectKey, 0);
                     int newLevel = Math.min(currentLevel + 1, MAX_LEVEL);
                     saveUserLevel(username, baseSubjectType, newLevel);
@@ -114,55 +109,50 @@ public class AdaptiveLearningService {
                 }
             }
         } else {
-            // Reset consecutive correct counter
+            // Reset correct counter and increment wrong counter.
             consecutiveCorrectMap.put(userSubjectKey, 0);
-
-            // Increment consecutive wrong counter
             int consecutiveWrong = consecutiveWrongMap.getOrDefault(userSubjectKey, 0) + 1;
             consecutiveWrongMap.put(userSubjectKey, consecutiveWrong);
 
-            // Check if user should level down
+            // Level down if enough consecutive wrong answers.
             if (consecutiveWrong >= CONSECUTIVE_WRONG_TO_LEVEL_DOWN && currentLevel > MIN_LEVEL) {
-                // Level down and reset counter
                 consecutiveWrongMap.put(userSubjectKey, 0);
                 int newLevel = Math.max(currentLevel - 1, MIN_LEVEL);
                 saveUserLevel(username, baseSubjectType, newLevel);
                 return newLevel;
             }
         }
-        // No change in level
         return currentLevel;
     }
 
     /**
-     * Save user's current level using the normalized base subject type.
+     * Save the user's current level for the given subject.
      */
     @Transactional
     public void saveUserLevel(String username, String subjectType, int level) {
-        // subjectType here is already the base subject type
         Optional<UserLevel> existingLevel = userLevelRepository.findByUsernameAndSubjectType(username, subjectType);
         if (existingLevel.isPresent()) {
-            // Update existing record
             UserLevel userLevel = existingLevel.get();
             userLevel.setLevel(level);
             userLevelRepository.save(userLevel);
         } else {
-            // Create new record
             UserLevel userLevel = new UserLevel(username, subjectType, level);
             userLevelRepository.save(userLevel);
         }
     }
 
     /**
-     * Extract the base subject type from a subject type with level.
-     * For example: "probability-3" -> "probability".
+     * Extract the base subject type from the provided subjectType.
+     * If the subjectType ends with a hyphen followed by digits (e.g. "probability-3"),
+     * that part is removed. Otherwise, the subjectType is returned unchanged.
      */
     private String getBaseSubjectType(String subjectType) {
         if (subjectType == null) {
             return "";
         }
-        if (subjectType.contains("-")) {
-            return subjectType.split("-")[0];
+        // Only remove the trailing "-number" if it exists.
+        if (subjectType.matches(".*-\\d+$")) {
+            return subjectType.substring(0, subjectType.lastIndexOf("-"));
         }
         return subjectType;
     }
