@@ -16,7 +16,8 @@ public class AdaptiveLearningController {
     private AdaptiveLearningService adaptiveLearningService;
 
     /**
-     * Get the recommended level for a user in a specific subject
+     * Get the recommended level for a user in a specific subject.
+     * This GET endpoint still uses request parameters.
      */
     @GetMapping("/recommended-level")
     public ResponseEntity<Map<String, Object>> getRecommendedLevel(
@@ -34,17 +35,17 @@ public class AdaptiveLearningController {
     }
 
     /**
-     * Process an answer and get the updated recommended level
+     * Process an answer and get the updated recommended level.
+     * Updated to accept a JSON request body instead of individual request parameters.
      */
     @PostMapping("/process-answer")
-    public ResponseEntity<Map<String, Object>> processAnswer(
-            @RequestParam String username,
-            @RequestParam String subjectType,
-            @RequestParam int currentLevel,
-            @RequestParam boolean isCorrect) {
+    public ResponseEntity<Map<String, Object>> processAnswer(@RequestBody Map<String, Object> request) {
+        String username = (String) request.get("username");
+        String subjectType = (String) request.get("subjectType");
+        int currentLevel = (int) request.get("currentLevel");
+        boolean isCorrect = (boolean) request.get("isCorrect");
 
-        int newLevel = adaptiveLearningService.processAnswer(
-                username, subjectType, currentLevel, isCorrect);
+        int newLevel = adaptiveLearningService.processAnswer(username, subjectType, currentLevel, isCorrect);
 
         Map<String, Object> response = new HashMap<>();
         response.put("username", username);
@@ -58,11 +59,11 @@ public class AdaptiveLearningController {
     }
 
     /**
-     * Save a user's level for a specific subject
+     * Save a user's level for a specific subject.
+     * This endpoint remains unchanged as it already accepts a JSON body.
      */
     @PostMapping("/save-user-level")
-    public ResponseEntity<Map<String, Object>> saveUserLevel(
-            @RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> saveUserLevel(@RequestBody Map<String, Object> request) {
 
         String username = (String) request.get("username");
         String subjectType = (String) request.get("subjectType");
