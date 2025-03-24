@@ -48,25 +48,21 @@ public class StatisticsService {
     public void recordAttempt(String username, String subjectType, boolean correct,
                               String question, String userAnswer, String correctAnswer,
                               String solution) {
-        // Get or create statistics for this subject
-        System.out.println("Entered record b4 crash");
         SubjectStatistics stats = subjectStatisticsRepository
                 .findByUsernameAndSubjectType(username, subjectType)
                 .orElse(new SubjectStatistics());
-        System.out.println("Question "+ question);
-        System.out.println("user answer "+userAnswer);
-        System.out.println("correctAnswer "+correctAnswer);
+
         if (stats.getId() == null) {
             stats.setUsername(username);
             stats.setSubjectType(subjectType);
         }
 
-        // Update statistics
         stats.setTotalQuestions(stats.getTotalQuestions() + 1);
         if (correct) {
             stats.setCorrectAnswers(stats.getCorrectAnswers() + 1);
+            stats.setConsecutiveCorrect(stats.getConsecutiveCorrect() + 1); // Increment streak
         } else {
-            // Log the mistake
+            stats.setConsecutiveCorrect(0); // Reset streak
             MistakeLog mistakeLog = new MistakeLog();
             mistakeLog.setUsername(username);
             mistakeLog.setSubjectType(subjectType);

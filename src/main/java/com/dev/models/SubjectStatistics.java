@@ -21,6 +21,16 @@ public class SubjectStatistics {
 
     @Column(name = "last_attempt")
     private LocalDateTime lastAttempt;
+    @Column(name = "consecutive_correct", nullable = false)
+    private int consecutiveCorrect = 0;
+
+    public int getConsecutiveCorrect() {
+        return consecutiveCorrect;
+    }
+
+    public void setConsecutiveCorrect(int consecutiveCorrect) {
+        this.consecutiveCorrect = consecutiveCorrect;
+    }
 
     // Calculated field
     public double getSuccessRate() {

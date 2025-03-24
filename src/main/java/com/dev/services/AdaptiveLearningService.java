@@ -28,10 +28,6 @@ public class AdaptiveLearningService {
     private static final int CONSECUTIVE_WRONG_TO_LEVEL_DOWN = 2;
     private static final double MIN_SUCCESS_RATE_FOR_LEVEL_UP = 80.0;
 
-    // Cache to track consecutive correct/wrong answers
-    private Map<String, Integer> consecutiveCorrectMap = new HashMap<>();
-    private Map<String, Integer> consecutiveWrongMap = new HashMap<>();
-
     /**
      * Get the recommended level for a user in a given subject.
      * The subjectType is normalized to its base type.
@@ -90,38 +86,42 @@ public class AdaptiveLearningService {
      */
     public int processAnswer(String username, String subjectType, int currentLevel, boolean isCorrect) {
         String baseSubjectType = getBaseSubjectType(subjectType);
-        String userSubjectKey = username + ":" + baseSubjectType;
+
+        // Get or create SubjectStatistics
+        Optional<SubjectStatistics> statsOpt = subjectStatisticsRepository.findByUsernameAndSubjectType(username, baseSubjectType);
+        SubjectStatistics stats = statsOpt.orElseGet(() -> {
+            SubjectStatistics newStats = new SubjectStatistics();
+            newStats.setUsername(username);
+            newStats.setSubjectType(baseSubjectType);
+            return newStats;
+        });
 
         if (isCorrect) {
-            // Reset wrong counter and increment correct counter.
-            consecutiveWrongMap.put(userSubjectKey, 0);
-            int consecutiveCorrect = consecutiveCorrectMap.getOrDefault(userSubjectKey, 0) + 1;
-            consecutiveCorrectMap.put(userSubjectKey, consecutiveCorrect);
+            int consecutiveCorrect = stats.getConsecutiveCorrect() + 1;
+            stats.setConsecutiveCorrect(consecutiveCorrect);
 
-            // Level up if enough consecutive correct answers and overall success rate is high.
             if (consecutiveCorrect >= CONSECUTIVE_CORRECT_TO_LEVEL_UP && currentLevel < MAX_LEVEL) {
-                Optional<SubjectStatistics> statsOpt = subjectStatisticsRepository.findByUsernameAndSubjectType(username, baseSubjectType);
-                if (statsOpt.isPresent() && statsOpt.get().getSuccessRate() >= MIN_SUCCESS_RATE_FOR_LEVEL_UP) {
-                    consecutiveCorrectMap.put(userSubjectKey, 0);
+                if (stats.getSuccessRate() >= MIN_SUCCESS_RATE_FOR_LEVEL_UP) {
+                    stats.setConsecutiveCorrect(0); // Reset after leveling up
                     int newLevel = Math.min(currentLevel + 1, MAX_LEVEL);
                     saveUserLevel(username, baseSubjectType, newLevel);
+                    subjectStatisticsRepository.save(stats);
                     return newLevel;
                 }
             }
         } else {
-            // Reset correct counter and increment wrong counter.
-            consecutiveCorrectMap.put(userSubjectKey, 0);
-            int consecutiveWrong = consecutiveWrongMap.getOrDefault(userSubjectKey, 0) + 1;
-            consecutiveWrongMap.put(userSubjectKey, consecutiveWrong);
-
-            // Level down if enough consecutive wrong answers.
-            if (consecutiveWrong >= CONSECUTIVE_WRONG_TO_LEVEL_DOWN && currentLevel > MIN_LEVEL) {
-                consecutiveWrongMap.put(userSubjectKey, 0);
+            stats.setConsecutiveCorrect(0); // Reset on wrong answer
+            // You could add consecutiveWrong tracking if desired
+            if (currentLevel > MIN_LEVEL) {
+                // For simplicity, level down immediately on wrong answer (or add consecutive wrong logic)
                 int newLevel = Math.max(currentLevel - 1, MIN_LEVEL);
                 saveUserLevel(username, baseSubjectType, newLevel);
+                subjectStatisticsRepository.save(stats);
                 return newLevel;
             }
         }
+
+        subjectStatisticsRepository.save(stats);
         return currentLevel;
     }
 

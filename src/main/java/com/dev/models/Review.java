@@ -1,42 +1,47 @@
 package com.dev.models;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "reviews")
 public class Review {
-    @Id // מציין שזה המפתח הראשי
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // מציין שהערך מתמלא אוטומטית
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) // מציין שהשדה לא יכול להיות ריק
-    private String username;
+    // This field stores the user's first name
+    @Column(name = "name", nullable = false)
+    private String name;
 
-    @Column(columnDefinition = "TEXT") // מציין שזה שדה מסוג TEXT
+    // Limit review content to 100 characters (both DB column size and validation)
+    @Column(nullable = false, length = 100)
+    @Size(max = 100, message = "Review must be at most 100 characters")
     private String content;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
-    // insertable = false כי הדאטהבייס מכניס את הערך
-    // updatable = false כי אי אפשר לעדכן את התאריך
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Review() {}
+
+    public Review(String name, String content) {
+        this.name = name;
+        this.content = content;
+    }
 
     // Getters and Setters
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getName() {
+        return name;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getContent() {
@@ -49,9 +54,5 @@ public class Review {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }
