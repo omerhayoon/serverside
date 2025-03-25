@@ -25,7 +25,6 @@ public class AdaptiveLearningController {
             @RequestParam String subjectType) {
 
         int recommendedLevel = adaptiveLearningService.getRecommendedLevel(username, subjectType);
-
         Map<String, Object> response = new HashMap<>();
         response.put("username", username);
         response.put("subjectType", subjectType);

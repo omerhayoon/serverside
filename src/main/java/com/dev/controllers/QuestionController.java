@@ -27,7 +27,8 @@ public class QuestionController {
     @GetMapping("/generate/{type}/{level}")
     public ResponseEntity<QuestionDTO> generateQuestion(@PathVariable String type,
                                                         @PathVariable int level) {
-        System.out.println("Entered generateQuestion for type: " + type + ", level: " + level);
+        System.out.println("Entered generateQuestion for type: " + type
+                + ", level: " + level);
         return ResponseEntity.ok(questionGeneratorService.generateQuestion(type, level));
     }
 

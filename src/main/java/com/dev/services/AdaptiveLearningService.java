@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +18,6 @@ public class AdaptiveLearningService {
 
     @Autowired
     private SubjectStatisticsRepository subjectStatisticsRepository;
-
     @Autowired
     private UserLevelRepository userLevelRepository;
 
@@ -34,7 +34,6 @@ public class AdaptiveLearningService {
      */
     public int getRecommendedLevel(String username, String subjectType) {
         String baseSubjectType = getBaseSubjectType(subjectType);
-
         // First, check if the user has a saved level for the base subject type.
         Optional<UserLevel> userLevelOpt = userLevelRepository.findByUsernameAndSubjectType(username, baseSubjectType);
         if (userLevelOpt.isPresent()) {
@@ -50,7 +49,6 @@ public class AdaptiveLearningService {
         }
 
         SubjectStatistics stats = statsOpt.get();
-
         // If the user has very few attempts, start conservatively.
         if (stats.getTotalQuestions() < 5) {
             saveUserLevel(username, baseSubjectType, 1);
@@ -59,7 +57,6 @@ public class AdaptiveLearningService {
 
         // Calculate success rate.
         double successRate = stats.getSuccessRate();
-
         // Determine level based on success rate.
         int recommendedLevel;
         if (successRate < 40) {
@@ -86,7 +83,6 @@ public class AdaptiveLearningService {
      */
     public int processAnswer(String username, String subjectType, int currentLevel, boolean isCorrect) {
         String baseSubjectType = getBaseSubjectType(subjectType);
-
         // Get or create SubjectStatistics
         Optional<SubjectStatistics> statsOpt = subjectStatisticsRepository.findByUsernameAndSubjectType(username, baseSubjectType);
         SubjectStatistics stats = statsOpt.orElseGet(() -> {
@@ -95,14 +91,14 @@ public class AdaptiveLearningService {
             newStats.setSubjectType(baseSubjectType);
             return newStats;
         });
-
         if (isCorrect) {
             int consecutiveCorrect = stats.getConsecutiveCorrect() + 1;
             stats.setConsecutiveCorrect(consecutiveCorrect);
 
             if (consecutiveCorrect >= CONSECUTIVE_CORRECT_TO_LEVEL_UP && currentLevel < MAX_LEVEL) {
                 if (stats.getSuccessRate() >= MIN_SUCCESS_RATE_FOR_LEVEL_UP) {
-                    stats.setConsecutiveCorrect(0); // Reset after leveling up
+                    stats.setConsecutiveCorrect(0);
+                    // Reset after leveling up
                     int newLevel = Math.min(currentLevel + 1, MAX_LEVEL);
                     saveUserLevel(username, baseSubjectType, newLevel);
                     subjectStatisticsRepository.save(stats);
@@ -110,7 +106,8 @@ public class AdaptiveLearningService {
                 }
             }
         } else {
-            stats.setConsecutiveCorrect(0); // Reset on wrong answer
+            stats.setConsecutiveCorrect(0);
+            // Reset on wrong answer
             // You could add consecutiveWrong tracking if desired
             if (currentLevel > MIN_LEVEL) {
                 // For simplicity, level down immediately on wrong answer (or add consecutive wrong logic)
@@ -121,6 +118,12 @@ public class AdaptiveLearningService {
             }
         }
 
+        // Update statistics
+        stats.setTotalQuestions(stats.getTotalQuestions() + 1);
+        if (isCorrect) {
+            stats.setCorrectAnswers(stats.getCorrectAnswers() + 1);
+        }
+        stats.setLastAttempt(LocalDateTime.now());
         subjectStatisticsRepository.save(stats);
         return currentLevel;
     }
@@ -144,7 +147,8 @@ public class AdaptiveLearningService {
     /**
      * Extract the base subject type from the provided subjectType.
      * If the subjectType ends with a hyphen followed by digits (e.g. "probability-3"),
-     * that part is removed. Otherwise, the subjectType is returned unchanged.
+     * that part is removed.
+     * Otherwise, the subjectType is returned unchanged.
      */
     private String getBaseSubjectType(String subjectType) {
         if (subjectType == null) {

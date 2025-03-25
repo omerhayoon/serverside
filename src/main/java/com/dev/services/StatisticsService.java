@@ -31,41 +31,44 @@ public class StatisticsService {
     public SubjectStatisticsRepository getSubjectStatisticsRepository() {
         return subjectStatisticsRepository;
     }
+
     private String formatAnswer(String answer) {
-        if((answer.contains("x") && answer.contains("y") )){
-            if(answer.contains("y=}")){
-                return answer.substring(answer.indexOf('=')+1,answer.indexOf(','));
-            }else{
-                return answer.substring(answer.indexOf("y="),answer.length()-1);
+        if ((answer.contains("x") && answer.contains("y"))) {
+            if (answer.contains("y=}")) {
+                return answer.substring(answer.indexOf('=') + 1, answer.indexOf(','));
+            } else {
+                return answer.substring(answer.indexOf("y="), answer.length() - 1);
             }
-        }else{
-            return answer.substring(answer.indexOf("x=")+2,answer.indexOf("}"));
+        } else {
+            return answer.substring(answer.indexOf("x=") + 2, answer.indexOf("}"));
         }
-//{x=14}
+        //{x=14}
 
     }
 
     public void recordAttempt(String username, String subjectType, boolean correct,
                               String question, String userAnswer, String correctAnswer,
                               String solution) {
+        String baseSubjectType = getBaseSubjectType(subjectType); // Use base subject type
         SubjectStatistics stats = subjectStatisticsRepository
-                .findByUsernameAndSubjectType(username, subjectType)
+                .findByUsernameAndSubjectType(username, baseSubjectType)
                 .orElse(new SubjectStatistics());
-
         if (stats.getId() == null) {
             stats.setUsername(username);
-            stats.setSubjectType(subjectType);
+            stats.setSubjectType(baseSubjectType); // Use base subject type
         }
 
         stats.setTotalQuestions(stats.getTotalQuestions() + 1);
         if (correct) {
             stats.setCorrectAnswers(stats.getCorrectAnswers() + 1);
-            stats.setConsecutiveCorrect(stats.getConsecutiveCorrect() + 1); // Increment streak
+            stats.setConsecutiveCorrect(stats.getConsecutiveCorrect() + 1);
+            // Increment streak
         } else {
-            stats.setConsecutiveCorrect(0); // Reset streak
+            stats.setConsecutiveCorrect(0);
+            // Reset streak
             MistakeLog mistakeLog = new MistakeLog();
             mistakeLog.setUsername(username);
-            mistakeLog.setSubjectType(subjectType);
+            mistakeLog.setSubjectType(baseSubjectType); // Use base subject type
             mistakeLog.setQuestion(question);
             mistakeLog.setUserAnswer(formatAnswer(userAnswer));
             mistakeLog.setCorrectAnswer(formatAnswer(correctAnswer));
@@ -82,20 +85,16 @@ public class StatisticsService {
     public void deleteMistake(Long mistakeId) {
         MistakeLog mistakeLog = mistakeLogRepository.findById(mistakeId)
                 .orElseThrow(() -> new RuntimeException("MistakeLog not found with id: " + mistakeId));
-
         mistakeLogRepository.delete(mistakeLog);
     }
 
     public Map<String, Object> getUserStatistics(String username) {
         Map<String, Object> statistics = new HashMap<>();
-
         // Get all subject statistics
         List<SubjectStatistics> subjectStats = subjectStatisticsRepository.findByUsername(username);
-
         // Calculate overall statistics
         int totalQuestions = 0;
         int totalCorrect = 0;
-
         for (SubjectStatistics stats : subjectStats) {
             totalQuestions += stats.getTotalQuestions();
             totalCorrect += stats.getCorrectAnswers();
@@ -106,7 +105,6 @@ public class StatisticsService {
         statistics.put("totalCorrect", totalCorrect);
         statistics.put("overallSuccessRate",
                 totalQuestions > 0 ? (double) totalCorrect / totalQuestions * 100 : 0);
-
         // Add subject-specific statistics
         Map<String, Map<String, Object>> subjectSpecificStats = new HashMap<>();
         for (SubjectStatistics stats : subjectStats) {
@@ -119,12 +117,22 @@ public class StatisticsService {
             subjectSpecificStats.put(stats.getSubjectType(), subjectData);
         }
         statistics.put("subjectStatistics", subjectSpecificStats);
-
         // Add unresolved mistakes
         List<MistakeLog> unresolvedMistakes =
                 mistakeLogRepository.findByUsernameAndResolvedFalse(username);
         statistics.put("unresolvedMistakes", unresolvedMistakes);
 
         return statistics;
+    }
+
+    private String getBaseSubjectType(String subjectType) {
+        if (subjectType == null) {
+            return "";
+        }
+        // Only remove the trailing "-number" if it exists.
+        if (subjectType.matches(".*-\\d+$")) {
+            return subjectType.substring(0, subjectType.lastIndexOf("-"));
+        }
+        return subjectType;
     }
 }

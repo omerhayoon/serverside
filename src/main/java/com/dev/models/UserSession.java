@@ -13,7 +13,7 @@ public class UserSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "zusername", nullable = false)
     private String username;
 
     @Column(name = "session_id", unique = true, nullable = false)

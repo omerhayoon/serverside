@@ -36,18 +36,17 @@ public class ProbabilityController {
         // Record the attempt in statistics
         statisticsService.recordAttempt(
                 submission.getUsername(),
-                submission.getSubjectType(), // This will be "probability-X" where X is the level
+                submission.getSubjectType(),
                 submission.isCorrect(),
                 submission.getQuestion(),
                 submission.getUserAnswer().toString(),
                 submission.getCorrectAnswer().toString(),
                 submission.getSolution()
         );
-
         System.out.println("Probability Controller checkAnswer is called");
 
         // Generate a new question for the next attempt (same level)
-        int level = determineLevel(submission.getSubjectType());
+        int level = submission.getLevel(); // Get level from submission
         QuestionDTO nextQuestion = probabilityGeneratorService.generateProbabilityQuestion(level);
 
         Map<String, Object> response = new HashMap<>();
@@ -64,9 +63,11 @@ public class ProbabilityController {
             try {
                 return Integer.parseInt(subjectType.substring(12));
             } catch (NumberFormatException e) {
-                return 1; // Default to level 1 if parsing fails
+                return 1;
+                // Default to level 1 if parsing fails
             }
         }
-        return 1; // Default to level 1
+        return 1;
+        // Default to level 1
     }
 }
