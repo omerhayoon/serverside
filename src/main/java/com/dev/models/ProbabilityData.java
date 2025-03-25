@@ -10,23 +10,26 @@ public class ProbabilityData {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String type;  // "name", "item", "color", etc.
-
-    @Column(nullable = false)
+    private String type;
     private String value;
+    private String singularValue; // Add this line
 
-    // Default constructor
-    public ProbabilityData() {
-    }
+    // Constructors
+    public ProbabilityData() {}
 
-    // Constructor
     public ProbabilityData(String type, String value) {
         this.type = type;
         this.value = value;
     }
+    public ProbabilityData(String type, String value,String singularValue) {
+        this.type = type;
+        this.value = value;
+        this.singularValue = singularValue;
+    }
 
-    // Getters and Setters
+
+    // Getters and setters...
+
     public Long getId() {
         return id;
     }
@@ -50,4 +53,14 @@ public class ProbabilityData {
     public void setValue(String value) {
         this.value = value;
     }
+
+    public String getSingularValue() {
+        return singularValue;
+    }
+
+    public void setSingularValue(String singularValue) {
+        this.singularValue = singularValue;
+    }
+
+
 }
