@@ -7,7 +7,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
-
+//before change
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -16,5 +16,6 @@ public class SecurityConfig {
                 .anyRequest().permitAll(); // כל הנתיבים פתוחים
         return http.build();
     }
+
 }
 

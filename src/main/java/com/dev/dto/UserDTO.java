@@ -7,6 +7,7 @@ public class UserDTO {
     private String name;
     private String email;
     private String profileIcon;
+    //before change
 
     public UserDTO(User user) {
         this.username = user.getUsername();

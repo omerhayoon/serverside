@@ -10,6 +10,8 @@ public class LoginResponse extends BasicResponse {
     private String email;
     private String profileIcon;
 
+    //before changes
+
     public LoginResponse(boolean success, Integer errorCode, String sessionId, UserDTO user) {
         super(success, errorCode);
         this.sessionId = sessionId;
@@ -45,3 +47,4 @@ public class LoginResponse extends BasicResponse {
         return profileIcon;
     }
 }
+

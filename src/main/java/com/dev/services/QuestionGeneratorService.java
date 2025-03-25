@@ -39,21 +39,21 @@ public class QuestionGeneratorService {
         int num1, num2, num3, num4;
         switch (level) {
             case 1:
-                num1 = random.nextInt(5) + 1;
-                num2 = random.nextInt(5) + 1;
+                num1 = random.nextInt(5) + 2;
+                num2 = random.nextInt(14) + 4;
                 dto.setQuestion(String.format("%d + %d = ?", num1, num2));
                 dto.setAnswer(Map.of("x", String.valueOf(num1 + num2)));
                 dto.setSolution(rtl + String.format("נתון\n%d + %d = %d", num1, num2, num1 + num2));
                 break;
             case 2:
                 num1 = random.nextInt(10) + 1;
-                num2 = random.nextInt(10) + 1;
+                num2 = random.nextInt(23) + 5;
                 dto.setQuestion(String.format("%d + %d = ?", num1, num2));
                 dto.setAnswer(Map.of("x", String.valueOf(num1 + num2)));
                 dto.setSolution(rtl + String.format("נתון\n%d + %d = %d", num1, num2, num1 + num2));
                 break;
             case 3:
-                num1 = random.nextInt(40) + 10;
+                num1 = random.nextInt(40) + 12;
                 num2 = random.nextInt(40) + 10;
                 dto.setQuestion(String.format("%d + %d = ?", num1, num2));
                 dto.setAnswer(Map.of("x", String.valueOf(num1 + num2)));
@@ -77,8 +77,8 @@ public class QuestionGeneratorService {
                 return dto;
             case 6:
                 num1 = random.nextInt(20) + 10;
-                num2 = random.nextInt(10) + 5;
-                num3 = random.nextInt(5) + 1;
+                num2 = random.nextInt(30) + 15;
+                num3 = random.nextInt(40) + 20;
                 int calc = num1 + (num2 * num3);
                 dto.setQuestion(String.format("%d + %d × %d = ?", num1, num2, num3));
                 dto.setAnswer(Map.of("x", String.valueOf(calc)));
@@ -98,11 +98,11 @@ public class QuestionGeneratorService {
         int minuend, subtrahend;
         switch (level) {
             case 1:
-                minuend = random.nextInt(5) + 5;
+                minuend = random.nextInt(12) + 5;
                 subtrahend = random.nextInt(minuend - 1) + 1; // ensure nonzero and less than minuend
                 break;
             case 2:
-                minuend = random.nextInt(10) + 5;
+                minuend = random.nextInt(20) + 5;
                 subtrahend = random.nextInt(5) + 1;
                 break;
             case 3:
@@ -145,29 +145,29 @@ public class QuestionGeneratorService {
         int factor1, factor2, factor3, factor4;
         switch (level) {
             case 1:
-                factor1 = random.nextInt(3) + 1;
-                factor2 = random.nextInt(3) + 1;
+                factor1 = random.nextInt(3) + 5;
+                factor2 = random.nextInt(8) + 7;
                 dto.setQuestion(String.format("%d × %d = ?", factor1, factor2));
                 dto.setAnswer(Map.of("x", String.valueOf(factor1 * factor2)));
                 dto.setSolution(rtl + String.format("נתון\n%d × %d = %d", factor1, factor2, factor1 * factor2));
                 break;
             case 2:
-                factor1 = random.nextInt(5) + 1;
-                factor2 = random.nextInt(5) + 1;
+                factor1 = random.nextInt(15) + 5;
+                factor2 = random.nextInt(24) + 12;
                 dto.setQuestion(String.format("%d × %d = ?", factor1, factor2));
                 dto.setAnswer(Map.of("x", String.valueOf(factor1 * factor2)));
                 dto.setSolution(rtl + String.format("נתון\n%d × %d = %d", factor1, factor2, factor1 * factor2));
                 break;
             case 3:
-                factor1 = random.nextInt(9) + 1;
+                factor1 = random.nextInt(30) + 18;
                 factor2 = random.nextInt(40) + 10;
                 dto.setQuestion(String.format("%d × %d = ?", factor1, factor2));
                 dto.setAnswer(Map.of("x", String.valueOf(factor1 * factor2)));
                 dto.setSolution(rtl + String.format("נתון\n%d × %d = %d", factor1, factor2, factor1 * factor2));
                 break;
             case 4:
-                factor1 = random.nextInt(40) + 10;
-                factor2 = random.nextInt(40) + 10;
+                factor1 = random.nextInt(40) + 15;
+                factor2 = random.nextInt(40) + 20;
                 dto.setQuestion(String.format("%d × %d = ?", factor1, factor2));
                 dto.setAnswer(Map.of("x", String.valueOf(factor1 * factor2)));
                 dto.setSolution(rtl + String.format("נתון\n%d × %d = %d", factor1, factor2, factor1 * factor2));
@@ -180,9 +180,9 @@ public class QuestionGeneratorService {
                 dto.setSolution(rtl + String.format("נתון\n%d × %d = %d", factor1, factor2, factor1 * factor2));
                 break;
             case 6:
-                factor1 = random.nextInt(5) + 1;
-                factor2 = random.nextInt(5) + 1;
-                factor3 = random.nextInt(5) + 1;
+                factor1 = random.nextInt(50) + 1;
+                factor2 = random.nextInt(25) + 1;
+                factor3 = random.nextInt(65) + 1;
                 dto.setQuestion(String.format("%d × %d × %d = ?", factor1, factor2, factor3));
                 int prod = factor1 * factor2 * factor3;
                 dto.setAnswer(Map.of("x", String.valueOf(prod)));
@@ -202,37 +202,37 @@ public class QuestionGeneratorService {
         int divisor, multiplier, product;
         switch (level) {
             case 1:
-                divisor = random.nextInt(3) + 1;
-                multiplier = random.nextInt(3) + 1;
+                divisor = random.nextInt(8) + 4;
+                multiplier = random.nextInt(3) + 3;
                 product = divisor * multiplier;
                 break;
             case 2:
-                divisor = random.nextInt(5) + 1;
-                multiplier = random.nextInt(5) + 1;
+                divisor = random.nextInt(15) + 4;
+                multiplier = random.nextInt(5) + 3;
                 product = divisor * multiplier;
                 break;
             case 3:
-                divisor = random.nextInt(10) + 1;
-                multiplier = random.nextInt(10) + 1;
+                divisor = random.nextInt(20) + 6;
+                multiplier = random.nextInt(13) + 4;
                 product = divisor * multiplier;
                 break;
             case 4:
-                divisor = random.nextInt(12) + 1;
-                multiplier = random.nextInt(10) + 5;
+                divisor = random.nextInt(31) + 5;
+                multiplier = random.nextInt(14) + 5;
                 product = divisor * multiplier;
                 break;
             case 5:
                 // Exact division with no remainder
-                divisor = random.nextInt(10) + 2;
-                multiplier = random.nextInt(10) + 1;
+                divisor = random.nextInt(25) + 14;
+                multiplier = random.nextInt(21) + 21;
                 product = divisor * multiplier;
                 dto.setQuestion(String.format("%d ÷ %d = ?", product, divisor));
                 dto.setAnswer(Map.of("x", String.valueOf(multiplier)));
                 dto.setSolution(rtl + String.format("נתון\n%d ÷ %d = %d\nחילוק פשוט של המספרים", product, divisor, multiplier));
                 return dto;
             case 6:
-                divisor = random.nextInt(5) + 2;
-                multiplier = random.nextInt(5) + 2;
+                divisor = random.nextInt(17) + 4;
+                multiplier = random.nextInt(97) + 4;
                 product = divisor * multiplier;
                 int addend = random.nextInt(10) + 1;
                 dto.setQuestion(String.format("%d ÷ %d + %d = ?", product, divisor, addend));
