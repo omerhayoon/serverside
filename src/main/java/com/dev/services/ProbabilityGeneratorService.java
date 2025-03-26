@@ -68,17 +68,17 @@ public class ProbabilityGeneratorService {
             List<ProbabilityData> nameData = Arrays.asList(
                     new ProbabilityData("name", "דוד"),
                     new ProbabilityData("name", "רון"),
-                    new ProbabilityData("name", "אביגיל"),
-                    new ProbabilityData("name", "יעל"),
+                    new ProbabilityData("name", "אבי"),
+                    new ProbabilityData("name", "יואב"),
                     new ProbabilityData("name", "יוסף"),
-                    new ProbabilityData("name", "מיכל"),
-                    new ProbabilityData("name", "דנה"),
-                    new ProbabilityData("name", "נועה"),
+                    new ProbabilityData("name", "מיכאל"),
+                    new ProbabilityData("name", "דניאל"),
+                    new ProbabilityData("name", "נועם"),
                     new ProbabilityData("name", "אורי"),
                     new ProbabilityData("name", "איתי"),
                     new ProbabilityData("name", "גיל"),
                     new ProbabilityData("name", "רותם"),
-                    new ProbabilityData("name", "שירה"),
+                    new ProbabilityData("name", "שרון"),
                     new ProbabilityData("name", "יונתן"),
                     new ProbabilityData("name", "עידו")
             );
