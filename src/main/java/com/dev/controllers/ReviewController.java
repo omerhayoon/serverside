@@ -45,15 +45,17 @@ public class ReviewController {
         if (sessionId == null) {
             return ResponseEntity.status(401).build();
         }
-
+        System.out.println("ryr ");
         // Get the logged in user from session
         User user = sessionManager.getUserBySessionId(sessionId);
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-
+        System.out.println("ryr ");
         // Set the reviewer's first name from the User entity
         review.setName(user.getName());
+        review.setUserName(user.getUsername());
+        System.out.println(review.getName());
         Review savedReview = reviewService.addReview(review);
         return ResponseEntity.ok(savedReview);
     }

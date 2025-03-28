@@ -16,6 +16,17 @@ public class Review {
     @Column(name = "name", nullable = false)
     private String name;
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    @Column(name = "username", nullable = false)
+    private String userName;
+
     // Limit review content to 100 characters (both DB column size and validation)
     @Column(nullable = false, length = 100)
     @Size(max = 100, message = "Review must be at most 100 characters")
@@ -26,8 +37,9 @@ public class Review {
 
     public Review() {}
 
-    public Review(String name, String content) {
+    public Review(String name, String userName, String content) {
         this.name = name;
+        this.userName = userName;
         this.content = content;
     }
 
